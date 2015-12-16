@@ -86,6 +86,10 @@ def dna_seqs_from_gff(G, S):
 ####################################################################
 ####################################################################
 
+os.sys.argv = [ 'mapping.py', 
+                '/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.assembly.fasta,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/agabiH97_1.assembly.fasta',
+                '/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.gff3,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/AgabiH97_1.gff3'];
+
 # Check if input is ok
 if len(os.sys.argv) != 3:
   usage(os.sys.argv[0]);
@@ -132,11 +136,11 @@ for i in xrange(len(org_dnas)):
 pvalue  = 0.05;
 cthresh = 3;
 
-PR              = ps.proteny();
-org_proteny_ids = [];
-for i, (genome_file, gff_file) in enumerate(zip(genome_files, gff_files)):
-  org_proteny_id = PR.add_org(*prepare_proteny('org_%d' % (i+1), gff_file, genome_file), isfile=False)
-  org_proteny_ids.append(org_proteny_id);
-#efor
-k = PR.analyze(id_a=org_proteny_ids[0], id_b=org_proteny_ids[1], cut='deeper_greater', nd=cluster_null.cluster_null_score_strict_smart, alpha=pvalue, ngenes_threshold=2, conservation_ratio=cthresh);
+#PR              = ps.proteny();
+#org_proteny_ids = [];
+#for i, (genome_file, gff_file) in enumerate(zip(genome_files, gff_files)):
+#  org_proteny_id = PR.add_org(*prepare_proteny('org_%d' % (i+1), gff_file, genome_file), isfile=False)
+#  org_proteny_ids.append(org_proteny_id);
+##efor
+#k = PR.analyze(id_a=org_proteny_ids[0], id_b=org_proteny_ids[1], cut='deeper_greater', nd=cluster_null.cluster_null_score_strict_smart, alpha=pvalue, ngenes_threshold=2, conservation_ratio=cthresh);
 

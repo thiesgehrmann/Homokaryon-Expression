@@ -1,4 +1,4 @@
-package fasta
+package hse
 
 import scala.util.parsing.combinator._
 
