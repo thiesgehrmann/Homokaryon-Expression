@@ -4,6 +4,9 @@ import scala.util.parsing.combinator._
 
 
 object Fasta {
+  /****************************************************************************
+   * https://gist.github.com/paradigmatic/3437345                             *
+   ****************************************************************************/
 
   case class Entry( description: String, sequence: String )
 
@@ -52,5 +55,6 @@ object Fasta {
     fasta_list.map(printSingleFasta)
   }
 
+  /////////////////////////////////////////////////////////////////////////////
 
 }
