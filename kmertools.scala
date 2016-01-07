@@ -130,66 +130,120 @@ object kmerTools {
 import collection.mutable.{HashMap  => mutHashMap}
 import collection.immutable.{HashMap => imHashMap}
 
-class genomeKmers(fasta: List[Fasta.Entry], k: Int) {
+//class genomeKmers(fastas: List[Fasta.Entry], k: Int) {
+///*****************************************************************************
+// * A class to handle the kmer HashMaps for genomes                           *
+// *   Using the allKmersStream function, we prevent the construction of all   *
+// *   kmers in memory at once.                                                *
+// *****************************************************************************/
+//
+//  case class hashMapEntry(description: String,  hm: imHashMap[String,Int])
+//
+//  //val tables = fastas.map(kmerHashMap)
+//  val table = kmerHashMapMem(fastas)
+//
+//  /////////////////////////////////////////////////////////////////////////////
+//
+//  def kmerHashMap(fasta: Fasta.Entry): hashMapEntry = {
+//    /**************************************************************************
+//      *  Create a hashmap for each fasta sequence. Iterate over all kmers in  *
+//      *   the stream and add them to the hashMap one by one                   *
+//      *************************************************************************/
+//
+//    var kmerCounts = new mutHashMap[String,Int]()
+//
+//    val kmerIterator = kmerTools.allKmersStream(fasta.sequence, k).iterator
+//
+//    var kmer  = new String("  ")
+//    var count = 0
+//
+//    while(kmerIterator.hasNext){
+//      kmer  = kmerIterator.next()
+//      count = 0
+//      if (kmerCounts.contains(kmer)){
+//        count = kmerCounts(kmer)
+//      }
+//      kmerCounts += Tuple2(kmer,count + 1);
+//    }
+//    
+//    new hashMapEntry(fasta.description, new imHashMap[String, Int] ++ kmerCounts)
+//
+//  }
+//
+//  /////////////////////////////////////////////////////////////////////////////
+//
+//  def countOccurences(kmer: String): Int = {
+//     /**************************************************************************
+//      *  Look through all the hashmaps in the structure for the number of     *
+//      *   kmers and sum them all at the end.                                  *
+//      *************************************************************************/
+//     def lookupHelper[A,B](hm: imHashMap[A,B], key: A, default: B): B = {
+//       if (hm.contains(key)){
+//         hm(key)
+//       }else{
+//         default
+//       }
+//     }
+//     
+//     tables.map( x => lookupHelper(x.hm, kmer, 0)).foldLeft(0)(_ + _)
+//  }
+//
+//  /////////////////////////////////////////////////////////////////////////////
+//
+//}
+
+class genomeKmers(fastas: List[Fasta.Entry], k: Int) {
 /*****************************************************************************
- * A class to handle the kmer HashMaps for genomes                           *
+ * A class to handle the kmer HashMap for genome sequences                   *
  *   Using the allKmersStream function, we prevent the construction of all   *
- *   kmers in memory at once.                                                *
+ *   kmers in memory at once. This is the memory efficient version           *
  *****************************************************************************/
 
-  case class hashMapEntry(description: String,  hm: imHashMap[String,Int])
-
-  val tables = fasta.map(kmerHashMap)
+  val table = kmerHashMap(fastas)
 
   /////////////////////////////////////////////////////////////////////////////
 
-  def kmerHashMap(fasta: Fasta.Entry): hashMapEntry = {
+  def kmerHashMap(fastas: List[Fasta.Entry]): imHashMap[String,Int] = {
     /**************************************************************************
-      *  Create a hashmap for each fasta sequence. Iterate over all kmers in  *
-      *   the stream and add them to the hashMap one by one                   *
+      *  Create a hashmap. For each fasta sequence, create a kmerstream.      *
+      *   Iterate over all kmers in the stream and add them to the hashMap    *
+      *   one by one. This one is more memory efficient                       *
       *************************************************************************/
-
+    
     var kmerCounts = new mutHashMap[String,Int]()
-
-    val kmerIterator = kmerTools.allKmersStream(fasta.sequence, k).iterator
-
-    var kmer  = new String("  ")
-    var count = 0
-
-    while(kmerIterator.hasNext){
-      kmer  = kmerIterator.next()
-      count = 0
-      if (kmerCounts.contains(kmer)){
-        count = kmerCounts(kmer)
+    
+    for(fasta <- fastas){
+      val kmerIterator = kmerTools.allKmersStream(fasta.sequence, k).iterator
+      var kmer  = new String("  ")
+      var count = 0
+      
+      while(kmerIterator.hasNext){
+        kmer  = kmerIterator.next()
+        count = 0
+        if (kmerCounts.contains(kmer)){
+          count = kmerCounts(kmer)
+        }
+        kmerCounts += Tuple2(kmer,count + 1);
       }
-      kmerCounts += Tuple2(kmer,count + 1);
     }
     
-    new hashMapEntry(fasta.description, new imHashMap[String, Int] ++ kmerCounts)
+    new imHashMap[String, Int] ++ kmerCounts
 
   }
 
   /////////////////////////////////////////////////////////////////////////////
 
   def countOccurences(kmer: String): Int = {
-     /**************************************************************************
-      *  Look through all the hashmaps in the structure for the number of     *
-      *   kmers and sum them all at the end.                                  *
-      *************************************************************************/
-     def lookupHelper[A,B](hm: imHashMap[A,B], key: A, default: B): B = {
-       if (hm.contains(key)){
-         hm(key)
-       }else{
-         default
-       }
-     }
-     
-     tables.map( x => lookupHelper(x.hm, kmer, 0)).foldLeft(0)(_ + _)
+    /*************************************************************************
+     * Look in the hashMap for the kmer, and return the count. otherwise 0   *
+     *************************************************************************/
+    if (table.contains(kmer)) {
+      table(kmer)
+    }else{
+      0
+    }
   }
 
-  /////////////////////////////////////////////////////////////////////////////
-
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 
