@@ -26,21 +26,39 @@ shift;
 
 genome_files="/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.assembly.fasta,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/agabiH97_1.assembly.fasta"
 gff_files="/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.gff3,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/AgabiH97_1.gff3"
+fastq_files="$@";
 
+n_genomes=`echo $genome_files | tr ',' '\n' | wc -l`
 
 ###############################################################################
 # Mapping - Identify pairs
+./mapping.py $genome_files $gff_files
 
+mapping_files_produced=`for x in $(seq 0 $((n_genomes-1))); do echo mapping_${x}.fasta; done | tr '\n' ',' | sed -e 's/,$//'`
 
 ###############################################################################
 # Identify unique sequences that uniquely identify genes between groups of genes
+~/scala-2.11.7/bin/scala -J-Xmx30G uniqueProbes "$mapping_files_produced" "$genome_files" 21 ./uniqueProbes
 
+# Merge all these unique tags into one file
+ls  | grep 'uniqueProbes[0-9]*.fasta' | xargs cat > uniqueProbes_all.fasta
 
 ###############################################################################
 # Determine abundance of each tag in each sample
+
+#java -jar -Xmx10G ../macaw/ara.jar snp-typer --marker uniqueProbes_all.fasta -t 1 -o ./probeCounts.tsv /home/nfs/thiesgehrmann/bulk/unaligned_bam/agabi/YFB_F2737_R1.bam
+sauto short -cmd "java -jar -Xmx30G ../ara/build/ara.jar unique-markers /home/nfs/thiesgehrmann/groups/w/phd/tasks/karyon_specific_expression/Homokaryon-Expression/mapping_0.fasta,/home/nfs/thiesgehrmann/groups/w/phd/tasks/karyon_specific_expression/Homokaryon-Expression/mapping_1.fasta $genome_files 21 /home/nfs/thiesgehrmann/groups/w/phd/tasks/karyon_specific_expression/Homokaryon-Expression/uniqueProbes"
 for fastq_file in "$@";
   print
   # Run ARA to count for each tag
+
+bamdir="/home/nfs/thiesgehrmann/bulk/unaligned_bam/agabi";
+
+for bamfile in `ls $bamdir | grep ".bam$"`; do
+  bamname=`echo $bamfile | sed -e 's/[.]bam$//'`;
+  echo $bamdir/$bamfile, $bamname
+  java -jar -Xmx10G ../ara/build/ara.jar snp-typer --marker "uniqueProbes_all.fasta" -t 1 -o "./uniqueMarkers_${bamname}.tsv" "$bamdir/$bamfile"
+done
 
 
 ###############################################################################

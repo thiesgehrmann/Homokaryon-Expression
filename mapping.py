@@ -81,6 +81,43 @@ def dna_seqs_from_gff(G, S):
   return GS.Get(_.parent, _.seq);
 #edef
 
+def blast_to_dictindex(BR):
+
+  hits = zip(*BR());
+
+  Hdict = {}
+
+  for h in hits:
+    if h[0] in Hdict:
+      Hdict[h[0]] = Hdict[h[0]] + [ h ];
+    else:
+      Hdict[h[0]] = [h];
+    #fi
+  #efor
+
+  Hdict = { k : sorted(Hdict[k], key=lambda x: x[12]) for k in Hdict };
+
+  return Hdict;
+
+#edef
+
+####################################################################
+
+def reciprocal_blast(BR_ab, BR_ba):
+  d_ab = blast_to_dictindex(BR_ab)
+  d_ba = blast_to_dictindex(BR_ba)
+
+  rBR = []
+
+  for k in d_ab:
+    k_tophit = d_ab[k][0][14]
+    if d_ba[k_tophit][0][14] == k:
+      rBR.append(d_ab[k][0]);
+    #fi
+  #efor
+  return Rep(rBR[0:]) / ( ('parentl', 'seql') + tuple(BR_ab.Names[2:-2]) + ('parentr', 'seqr'))
+#edef
+
 ####################################################################
 ####################################################################
 ####################################################################
@@ -116,25 +153,31 @@ for org_genome, org_gff in zip(genome_files, gff_files):
 org_blasts = [];
 for i in xrange(len(org_dnas)):
   for j in xrange(i+1, len(org_dnas)):
-    org_blasts.append((org_dnas[i] | Blast(reciprocal=False, normalize=False, overwrite=False, folder=blast_dir) | org_dnas[j]).Copy());
+    BR_ab = (org_dnas[i] | Blast(reciprocal=False, normalize=False, overwrite=False, folder=blast_dir) | org_dnas[j]).Copy()
+    BR_ba = (org_dnas[j] | Blast(reciprocal=False, normalize=False, overwrite=False, folder=blast_dir) | org_dnas[i]).Copy()
+    rBR = reciprocal_blast(BR_ab, BR_ba);
+    org_blasts.append(rBR)
   #efor
 #efor
 
-k = 0;
-for i in xrange(len(org_dnas)):
-  for j in xrange(i+1, len(org_dnas)):
-    unique_diff_mapped = org_blasts[k][_.evalue < 1e-50].GroupBy(_.parent.L)[_.parent.R.Count() == 1].Flat()[_.pident != 100];
-    Export(unique_diff_mapped.Get(_.parent.L, _.seq.L), 'mapping_%d_%d.fasta' % (k,i));
-    Export(unique_diff_mapped.Get(_.parent.R, _.seq.R), 'mapping_%d_%d.fasta' % (k,j));
-  #efor
+###
+# Need to do some magic here if we want more than two species...
+# However, if we only want two, then we do this:
+###
+unique_mapped_diff = org_blasts[0][_.evalue < 1e-100][_.pident != 100];
+MBR = [ unique_mapped_diff.Get(_.parentl / 'parent', _.seql / 'seq'), unique_mapped_diff.Get(_.parentr / 'parent', _.seqr / 'seq') ]
+
+Export(Rep(zip(*[ x.parent() for x in MBR ])), 'mapping.tsv', names=False);
+
+for i, M in enumerate(MBR):
+  Export(M, 'mapping_%d.fasta' % (i));
 #efor
-    
 
 ####################################################################
 #Perform a proteny synteny analysis
 
-pvalue  = 0.05;
-cthresh = 3;
+#pvalue  = 0.05;
+#cthresh = 3;
 
 #PR              = ps.proteny();
 #org_proteny_ids = [];

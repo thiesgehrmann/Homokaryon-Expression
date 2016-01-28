@@ -1,6 +1,7 @@
 package hse
 
 import scala.util.parsing.combinator._
+import java.io._
 
 
 object Fasta {
@@ -47,14 +48,27 @@ object Fasta {
 
   /////////////////////////////////////////////////////////////////////////////
 
-  def print(fasta_list: List[Entry]) = {
+  def print(fastaList: List[Entry]) = {
     def printSingleFasta(fastaSingle: Entry) = {
       println('>' + fastaSingle.description)
       println(fastaSingle.sequence)
     }
-    fasta_list.map(printSingleFasta)
+    fastaList.map(printSingleFasta)
   }
 
   /////////////////////////////////////////////////////////////////////////////
+
+  def write(fastaList: List[Entry], fn: String) = {
+
+    val outfd = new PrintWriter(new FileWriter(fn, false))
+
+    for (e <- fastaList){
+      outfd.write(">" + e.description + '\n');
+      for ( l <- e.sequence.grouped(80).toList) {
+        outfd.write(l + '\n');
+      }
+    }
+    outfd.close()
+  }
 
 }
