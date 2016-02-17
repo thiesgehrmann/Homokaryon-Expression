@@ -9,6 +9,7 @@ from external_packages.proteny import proteny as ps;
 from external_packages.proteny import cluster_null;
 from external_packages.proteny import data as pdata;
 import sys;
+import os;
 
 sys.path.append('./external_packages/proteny')
 import cluster_null as cluster_null;
@@ -18,7 +19,7 @@ import cluster_null as cluster_null;
 
 def usage(arg0):
   print "Mapping Usage:";
-  print " %s <org_genome_files> <org_gff_files>" % arg0;
+  print " %s <org_genome_files> <org_gff_files> <output_dir>" % arg0;
   print "";
   print "org_genome_files: (files) Comma-separated list of FASTA files with DNA genome sequences"
   print "org_gff_files:    (files) Comma-separated list of GFF3 files with gene annotations for the genome sequences given in <org_genome_files>"
@@ -111,7 +112,7 @@ def reciprocal_blast(BR_ab, BR_ba):
 
   for k in d_ab:
     k_tophit = d_ab[k][0][14]
-    if d_ba[k_tophit][0][14] == k:
+    if (k_tophit in d_ba) and (d_ba[k_tophit][0][14] == k):
       rBR.append(d_ab[k][0]);
     #fi
   #efor
@@ -123,20 +124,31 @@ def reciprocal_blast(BR_ab, BR_ba):
 ####################################################################
 ####################################################################
 
-os.sys.argv = [ 'mapping.py', 
-                '/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.assembly.fasta,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/agabiH97_1.assembly.fasta',
-                '/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.gff3,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/AgabiH97_1.gff3'];
+#os.sys.argv = [ 'mapping.py', 
+#                '/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.assembly.fasta,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/agabiH97_1.assembly.fasta',
+#                '/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.gff3,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/AgabiH97_1.gff3',
+#                'U1'];
+
+sys.argv = [ sys.argv[0],
+             '/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p1.assembly.fasta,/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p2.assembly.fasta',
+             '/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p1.genes.gff3,/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p2.genes.gff3',
+             '/home/nfs/thiesgehrmann/groups/w/phd/tasks/karyon_specific_expression/Homokaryon-Expression/A15']
 
 # Check if input is ok
-if len(os.sys.argv) != 3:
-  usage(os.sys.argv[0]);
+if len(sys.argv) != 4:
+  usage(sys.argv[0]);
   sys.exit(1);
 #fi
 
   # Read input data
-genome_files   = os.sys.argv[1].split(',');
-gff_files      = os.sys.argv[2].split(',');
+genome_files   = sys.argv[1].split(',');
+gff_files      = sys.argv[2].split(',');
+output_dir     = sys.argv[3];
 blast_dir      = '/home/nfs/thiesgehrmann/groups/w/phd/tasks/blast_runs';
+
+print genome_files
+print gff_files
+print output_dir
 
 ####################################################################
 #Blast the DNA sequences
@@ -147,7 +159,7 @@ for org_genome, org_gff in zip(genome_files, gff_files):
   print org_genome, org_gff;
   org_genome = Read(org_genome, format='fasta');
   org_gff    = Read(org_gff, format='gff');
-  org_dnas.append(dna_seqs_from_gff(org_gff, org_genome));
+  org_dnas.append(dna_seqs_from_gff(org_gff, org_genome).Copy())
 #efor
 
 org_blasts = [];
@@ -167,10 +179,10 @@ for i in xrange(len(org_dnas)):
 unique_mapped_diff = org_blasts[0][_.evalue < 1e-100][_.pident != 100];
 MBR = [ unique_mapped_diff.Get(_.parentl / 'parent', _.seql / 'seq'), unique_mapped_diff.Get(_.parentr / 'parent', _.seqr / 'seq') ]
 
-Export(Rep(zip(*[ x.parent() for x in MBR ])), 'mapping.tsv', names=False);
+Export(Rep(zip(*[ x.parent() for x in MBR ])), '%s/mapping.tsv' % (output_dir), names=False);
 
 for i, M in enumerate(MBR):
-  Export(M, 'mapping_%d.fasta' % (i));
+  Export(M, '%s/mapping_%d.fasta' % (output_dir, i));
 #efor
 
 ####################################################################
