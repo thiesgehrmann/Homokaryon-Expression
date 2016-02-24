@@ -1,19 +1,38 @@
 
 import numpy as np
+from scipy.stats import t
 
+import python_utils as utils;
+import python_svg_utils as svg_utils;
+import pandas as pd
+import matplotlib.pylab as plt;
+import seaborn as sns;
 ###############################################################################
 
 # The structure of the data
 
-sample_names  = np.array([ "Casing_C_26" ,"Initials_I272" ,"Pileal_Stipeal_A2611" ,"Pileal_Stipeal_A2612" ,"Different_D2641" ,"Different_D2642" ,"Different_D2643" ,"Different_D2644" ,"Different_D2645" ,"Different_D2646" ,"YFB_F2631" ,"YFB_F2632" ,"YFB_F2633" ,"YFB_F2634" ,"YFB_F2635" ,"YFB_F2636" ,"YFB_F2637" ,"Casing_C_27" ,"Initials_I2611" ,"Pileal_Stipeal_A2711" ,"Pileal_Stipeal_A2712" ,"Different_D2721" ,"Different_D2722" ,"Different_D2723" ,"Different_D2724" ,"Different_D2725" ,"Different_D2726" ,"YFB_F2731" ,"YFB_F2732" ,"YFB_F2733" ,"YFB_F2734" ,"YFB_F2735" ,"YFB_F2736" ,"YFB_F2737"]);
-  # Replicate groups
-sample_labels = np.array([ 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 ]);
+#sys.argv = ['',
+#            'agabi_tissue_data.tsv',
+#            "/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p1.assembly.fasta,/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p2.assembly.fasta",
+#            "/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p1.genes.gff3,/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p2.genes.gff3",
+#            'A15',
+#            'homokaryon_activity.svg']
 
-sample_names = np.concatenate([ sample_names[sample_labels == i] for i in xrange(max(sample_labels+1))])
-sample_labels = np.concatenate([ sample_labels[sample_labels == i] for i in xrange(max(sample_labels+1))])
+sys.argv = [ '',
+             'agabi_compost_data.tsv',
+             "/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p1.assembly.fasta,/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p2.assembly.fasta",
+             "/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p1.genes.gff3,/home/nfs/thiesgehrmann/groups/w/phd/data/A15_homokaryons/AgabiA15p2.genes.gff3",
+             'A15_compost'];
 
-  # Replicate group names
-label_names   = np.array([ "Veg","Initials","PS_stipe_center","PS_stipe_shell","DIF_stipe_center","DIF_stipe_shell","DIF_stipe_skin","DIF_cap_skin","DIF_cap_tissue","DIF_gill_tissue","YFB_stipe_center","YFB_stipe_shell","YFB_stipe_skin","YFB_cap_skin","YFB_cap_tissue","YFB_gill_tissue","YFB_veil"]);
+data_file  = Read(sys.argv[1]).Cast(str, int, str, str) / ('sample_name', 'replicate_id', 'replicate_label', 'bam_file');
+genomes    = [ Read(x, format='fasta') for x in sys.argv[2].split(',')]
+gffs       = [ Read(x, format='gff') for x in sys.argv[3].split(',')]
+output_dir = sys.argv[4];
+tissue_figure = sys.argv[5] if len(sys.argv) == 6 else None;
+
+sample_names = data_file.Sort(_.replicate_id).Get(_.sample_name)()
+sample_labels = data_file.Sort(_.replicate_id).Get(_.replicate_id)()
+label_names   = data_file.Get(_.replicate_id, _.replicate_label).Unique().Sort(_.replicate_id).replicate_label()
 
 ###############################################################################
 
@@ -25,7 +44,7 @@ for i, label_name in enumerate(label_names):
   samples    = sample_names[sample_labels == i]
   sample_ids = np.where(sample_labels == i)[0]
   print samples;
-  Ds = [ Read("FIXTHIS_%s.tsv.ara" % (x), verbose=False).Detect() for x in samples];
+  Ds = [ Read("%s/MarkerCounts_%s.tsv.ara" % (output_dir, x), verbose=False).Detect() for x in samples];
   Ds = [ x.To(_.marker, Do=_.Each(lambda x: '_'.join(x.split('_')[:-1])).Cast(str)) for x in Ds ]
   Ds = [ x.ReplaceMissing().GroupBy(_.marker) for x in Ds]
   Ds = [ x.To(_.read_depth, Do=_.Mean()) for x in Ds]
@@ -52,7 +71,7 @@ D = D.Copy()
 ###############################################################################
 # Based on the mapping, create a view where we see both 
 
-M = Read('mapping.tsv')
+M = Read('%s/mapping.tsv' % (output_dir))
 
 Mgroup = M.Get(_.Get(tuple(M.Names)).To(0, Do=_.Each(lambda x: ','.join(x)).Cast(str) / 'group'), *M.Names);
 Mflat = Mgroup.Get(_.group, M.Names[0])
@@ -68,24 +87,26 @@ Dgenegroup = Dgenegroup.Sort(_.geneid, _.replicate_id);
 fieldnames = Dgenegroup.GroupBy(_.genegroup).Sort(_.geneid, _.replicate_id)[0].Get(_.geneid, _.sample_name).To(_.geneid, Do=_.Each(lambda x: x.split('|')[0]).Cast(str)).Get(_.geneid + '|' + _.sample_name / 'fieldnames')().tolist()
 fieldnames = tuple([ x.lower() for x in ['genegroup'] + fieldnames ])
 deseq_input = Rep([ (x,) + tuple(y.tolist()) for (x,y) in zip(*Dgenegroup.Get(_.genegroup, _.avg_read_depth.Cast(int)).GroupBy(_.genegroup)())]) / fieldnames
-Export(deseq_input, 'DESEQ_input.tsv');
+Export(deseq_input, '%s/DESEQ_input.tsv' % (output_dir));
 
+###############################################################################
 # HERE WE NEED TO RUN DESEQ/EdgeR/whatever for normalization!!!
-
-Dgenegroup.GroupBy((_.geneid, _.sample_name))
+cmd = "Rscript deseq.R '%s/DESEQ_input.tsv' %s" % (output_dir, output_dir);
+utils.run_cmd(cmd)
 
 ###############################################################################
 
-DT = Read('deseq_tests.tsv').Detect()
+DT = Read('%s/deseq_tests.tsv' % output_dir).Detect()
 
-genomes = [ Read(x, format='gff') for x in '/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h39_1/AgabiH39_1.gff3,/home/nfs/thiesgehrmann/groups/w/phd/data/agabi_h97_1/AgabiH97_1.gff3'.split(',')]
+# We have two homokaryons, Homokaryon1 and Homokaryon2, H1 and H2
 
+DT_H1 = (DT.To(_.id, Do=_.Each(lambda x: x.split(',')[0]).Cast(str)) | Match(_.id, jointype='left', merge_same=True) | gffs[0].Get(_.seqname, _.id))
+DT_H2 = (DT.To(_.id, Do=_.Each(lambda x: x.split(',')[1]).Cast(str)) | Match(_.id, jointype='left', merge_same=True) | gffs[1].Get(_.seqname, _.id))
 
-DT_H39 = (DT.To(_.id, Do=_.Each(lambda x: x.split(',')[0]).Cast(str)) | Match(_.id, jointype='left', merge_same=True) | genomes[0].Get(_.seqname, _.id))
-DT_H97 = (DT.To(_.id, Do=_.Each(lambda x: x.split(',')[1]).Cast(str)) | Match(_.id, jointype='left', merge_same=True) | genomes[1].Get(_.seqname, _.id))
+all_counted_ids = (DT_H1.id | Stack | DT_H2.id).Copy();
 
-upregulated_in_h39 = DT_H39[_.padj < .05][_.foldchange < 1.0/3.0]
-upregulated_in_h97 = DT_H97[_.padj < .05][_.foldchange > 3]
+upregulated_in_H1 = DT_H1[_.padj < .05][_.foldchange < 1.0/3.0]
+upregulated_in_H2 = DT_H2[_.padj < .05][_.foldchange > 3]
 
 def format_upregulated_conds(data):
   conds = data.GroupBy(_.condition).Get(_.condition, _.id, _.seqname)
@@ -110,14 +131,16 @@ def enriched_chromosome(data):
   return enrich(enrich_data)
 #edef
 
-upregulated_conds_h39 = format_upregulated_conds(upregulated_in_h39)
-upregulated_conds_h97 = format_upregulated_conds(upregulated_in_h97)
+upregulated_conds_H1 = format_upregulated_conds(upregulated_in_H1)
+upregulated_conds_H2 = format_upregulated_conds(upregulated_in_H2)
 
 all_enrichtests = []
-for org, upregulated_conds, genome in zip(['h39', 'h97'], [ upregulated_conds_h39, upregulated_conds_h97], genomes):
+for org, upregulated_conds, genome in zip(['H1', 'H2'], [ upregulated_conds_H1, upregulated_conds_H2], gffs):
   for cond in upregulated_conds.cond():
     print cond
-    data = upregulated_conds.Flat()[_.cond == cond].GroupBy((_.cond, _.seqname)).Get(_.cond[0], _.id.Count() / 'ndiff', _.seqname[0]) | Match(_.seqname, jointype='full', merge_same=True) | genome.GroupBy(_.seqname)[_.feature == 'gene'].Get(_.seqname, _.id.Count() / 'ngenes')
+    data_left  = upregulated_conds.Flat()[_.cond == cond].GroupBy((_.cond, _.seqname)).Get(_.cond[0], _.id.Count() / 'ndiff', _.seqname[0])
+    data_right = genome.GroupBy(_.seqname)[_.feature == 'gene'][_.id.In(all_counted_ids)].Get(_.seqname, _.id.Count() / 'ngenes')
+    data = data_left | Match(_.seqname, jointype='full', merge_same=True) | data_right
     data = data.Get(_.seqname, _.ndiff, _.ngenes).ReplaceMissing()
     all_enrichtests.append(enriched_chromosome(data).To(_.name, Do=_.Each(lambda x: org + '|' + cond + '|' + x).Cast(str)).Copy())
   #efor
@@ -130,46 +153,115 @@ for et in all_enrichtests[1:]:
 
 enrichtests[_.p < 0.05 / enrichtests.Shape()()].Show()
 
-scaffold12b_genes = upregulated_conds_h39[_.seqname == 'scaffold_12b'].id.Flat().Unique().Sort().Show()
-genes = Read('mapping_0.fasta')
-
-bases = ['t', 'c', 'a', 'g'];
-codons = [a+b+c for a in bases for b in bases for c in bases];
-amino_acids = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
-codon_table = dict(zip(codons, amino_acids));
-
-def translate(seq):
-  aa = '';
-  for i in xrange(0, len(seq), 3):
-    cod = seq[i:i+3].lower();
-    aa += codon_table[cod] if (cod in codon_table) else '*';
-  #efor
-  return aa;
-#edef
-
-genes[_.f0.In(scaffold12b_genes.id)].Sort(_.f0).To(_.seq, Do=_.Each(lambda x: translate(x)).Cast('protein'))
+scaffold12b_genes = upregulated_conds_H1[_.seqname == 'scaffold_12b'].id.Flat().Unique().Sort().Show()
+mapping0 = Read('%s/mapping_0.fasta' % output_dir)
 
 ###############################################################################
 
-condlibratios = Read('deseq_condlibratios.tsv').Detect()
-
-from scipy.stats import t
-
-condlibratios = condlibratios.Get(_.cond, _.r1, _.r2, _.avg, _.sd, _.var, (_.sd / np.sqrt(2)) * max(t.interval(0.95, 1)) / 'confidence')
-
-# from http://stackoverflow.com/questions/20792445/calculate-rgb-value-for-a-range-of-values-to-create-heat-map
-def convert_to_rgb(minval, maxval, val, colors):
-    max_index = len(colors)-1
-    v = float(val-minval) / float(maxval-minval) * max_index
-    i1, i2 = int(v), min(int(v)+1, max_index)
-    (r1, g1, b1), (r2, g2, b2) = colors[i1], colors[i2]
-    f = v - i1
-    return int(r1 + f*(r2-r1)), int(g1 + f*(g2-g1)), int(b1 + f*(b2-b1))
-
-minval, maxval = condlibratios.avg.Min()(), condlibratios.avg.Max()()
-colors = [(0, 0, 255), (255, 255, 255), (255, 0, 0)]  # [BLUE, GREEN, RED]
-condlibratios.Get(_.cond, _.avg.Each(lambda x: convert_to_rgb(minval, maxval, x, colors)))
 
 
 
 
+mapping0[_.f0.In(scaffold12b_genes.id)].Sort(_.f0).To(_.seq, Do=_.Each(lambda x: utils.translate(x)).Cast('protein'))
+
+###############################################################################
+
+DI_chr = deseq_input | Match(_.genegroup.Each(lambda x: x.split(',')[0]).Cast(str), _.id, merge_same='equi', jointype='left') | gffs[0].Get(_.id, _.seqname)
+DI_chr = DI_chr.Without(_.id);
+
+DI_chr = DI_chr.GroupBy(_.seqname)
+
+for id, name in enumerate(DI_chr.Names[1:-1], 1):
+  DI_chr = DI_chr.To(id, Do=_.Sum())
+#efor
+
+DI_chr = DI_chr.Get(_.seqname, *[ x[0] for x in enumerate(DI_chr.Names[1:-1], 1) ]).ReplaceMissing()
+
+conditions = [ x for x in enumerate(DI_chr.Names[1:], 1)]
+condition_pairs = zip(conditions[:len(conditions)/2], conditions[len(conditions)/2:])
+
+stats = [];
+for ((a_id_rep1, conda_rep1), (b_id_rep1, condb_rep1)), ((a_id_rep2, conda_rep2), (b_id_rep2, condb_rep2)) in zip(condition_pairs[0::2], condition_pairs[1::2]):
+  cond = conda_rep1.split('|')[1]
+  cond_stats = DI_chr.Get(_.seqname, _.Get(a_id_rep1).Cast(float) / _.Get(b_id_rep1).Cast(float), _.Get(a_id_rep2).Cast(float) / _.Get(b_id_rep2).Cast(float)  )   / ('seqname', 'r1', 'r2');
+  cond_stats = cond_stats.Get(_.seqname, _.r1, _.r2, ((_.r1 + _.r2) / 2) / 'mean' )
+  cond_stats = cond_stats.Get(_.seqname, _.r1, _.r2, _.mean, ((_.r1 - _.mean) * (_.r1 - _.mean) + (_.r2 - _.mean) * (_.r2 - _.mean) / 2) / 'var')
+  cond_stats = cond_stats.Get(_.seqname, _.r1, _.r2, _.mean, _.var.Each(lambda x: np.sqrt(x)).Cast(float) / 'sd', _.var );
+  cond_stats = cond_stats.Get(_.seqname, _.r1, _.r2, _.mean, _.sd, _.var, (_.sd / np.sqrt(2)) * max(t.interval(0.90, 1)) / 'confidence' ).Copy()
+  stats.append(cond_stats.Get(_.seqname.Each(lambda x: cond).Cast(str) / 'cond', *cond_stats.Names).Copy());
+#efor
+
+allstats = stats[0];
+for s in stats[1:]:
+  allstats = allstats | Stack | s;
+#efor
+
+  # Add the data from ALL the chromosomes
+condlibratios = Read('%s/deseq_condlibratios.tsv' % output_dir).Detect() / ('cond', 'r1', 'r2', 'mean', 'sd', 'var');
+condlibratios = condlibratios.Get(_.cond, _.r1, _.r2, _.mean, _.sd, _.var, (_.sd / np.sqrt(2)) * max(t.interval(0.90, 1)) / 'confidence')
+
+allstats = condlibratios.Get(_.cond, _.cond.Each(lambda x: 'all').Cast(str) / 'seqname', _.r1, _.r2, _.mean, _.sd, _.var, _.confidence) | Stack | allstats
+
+minval, maxval = allstats.Get(_.mean.Min(), _.mean.Max())()
+colors = [(0, 0, 255), (255, 255, 255), (255, 0, 0)]  # [BLUE, WHITE, RED]
+
+defaults = { '!!H1!!': 'P1', '!!H2!!': 'P2', '!!ratio_min!!': '%1.1f' % minval, '!!ratio_max!!': '%1.1f' % maxval }
+
+def draw_heatmap(allstats, outfigure, order=None):
+  conds, seqname, mean = allstats.Get(_.cond, _.seqname, _.mean)();
+  df = pd.DataFrame({ 'conds': conds, 'seqname': seqname, 'mean':mean})
+  df = df.pivot('conds', 'seqname', 'mean')
+  plt.cla(); plt.clf();
+  ax = sns.heatmap(df, center=1.0)
+  plt.savefig('%s/condlibratios.svg' % output_dir)
+#edef
+
+draw_heatmap(allstats, '%s/condlibratios.svg' % output_dir)
+
+# Scale so that 1.0 is in the middle...
+#We need to scale in a piece wise continuous way...
+def norm(min, mid, max, x):
+
+  nmin = 0;
+  nmid = 0.5
+  nmax = 1.0
+
+  if x < mid:
+    return  (x-min) * (nmid / (mid - min))
+  else:
+    return (x-mid) * ((nmax - nmid) / (max - mid)) + nmid
+  #fi
+#edef
+
+  
+
+
+allstats_mean_norm = allstats.Get(_.mean.Each(lambda x: norm(minval, 1.0, maxval, x)).Cast(float) / 'norm', *allstats.Names)
+
+if tissue_figure is not None:
+
+  reload(svg_utils)
+  reload(utils);
+  for chrid in allstats.seqname.Unique()():
+    replacevals = defaults
+    replacevals.update(dict(zip(*allstats_mean_norm[_.seqname == chrid].Get(_.cond.Each(lambda x: '!!' + x + '!!').Cast(str), 
+                                                                            _.norm.Each(lambda x: utils.rgb2hex(utils.convert_to_rgb(0, 1, x, colors))))())))
+    svg = svg_utils.read_svg(tissue_figure);
+    svg = svg_utils.replacem(svg, replacevals);
+    svg_utils.write_svg(svg, '%s/%s.homokaryon_activity.svg' % (output_dir, chrid))
+  #efor
+  
+  
+  for chrid in allstats.seqname.Unique()():
+    replacevals = defaults
+    replacevals.update(dict(zip(*allstats_mean_norm[_.seqname == chrid].Get(_.cond.Each(lambda x: '!!' + x + '!!').Cast(str),
+                                                                            _.Get(_.norm, _.mean, _.confidence).Each(lambda w,x,y: utils.rgb2hex(utils.convert_to_rgb(0, 1, w, colors)) if np.abs(1-x) > y else '000000' ))())))
+    print chrid
+    print allstats_mean_norm[_.seqname == chrid].Get(_.cond, _.Get(_.norm, _.mean, _.confidence).Each(lambda w,x,y: (w,x,y, utils.rgb2hex(utils.convert_to_rgb(0, 1, w, colors)) if np.abs(1-x) > y else '000000' )))()
+    svg = svg_utils.read_svg(tissue_figure);
+    svg = svg_utils.replacem(svg, replacevals);
+    svg_utils.write_svg(svg, '%s/%s.signif.homokaryon_activity.svg' % (output_dir, chrid))
+  #efor
+#fi
+
+###############################################################################

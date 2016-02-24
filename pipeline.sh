@@ -3,12 +3,13 @@
 function usage(){
 
   echo "$0 Usage"
-  echo "  $0 <genome_files> <gff_files> <output_dir> <bam_dir>"
+  echo "  $0 <genome_files> <gff_files> <output_dir> <data_file> <paired_end>"
   echo "";
   echo "genome_files:  Comma-separated list of FASTA files, representing each homokaryon/allele";
   echo "gff_files:     Comma-separated list of GFF files, representing each homokaryon/allele";
   echo "output_dir:    Directory to which output should be written";
-  echo "bam_dir:       Directory with BAM files that should be analyzed"
+  echo "data_file:     File with BAM files and samples described"
+  echo "paired_end:    [Y|N] Is the paired end?"
 
 }
 
@@ -26,7 +27,11 @@ gff_files="$1";
 shift;
 output_dir="$1";
 shift;
-bamdir="$1";
+data_file="$1";
+shift
+paired="$1";
+shift
+tissue_figure="$1"
 shift
 
 
@@ -57,14 +62,24 @@ find "$output_dir"  | grep -e "UniqueMarkers_[0-9]\+[.]fasta" | xargs cat > $out
 #  print
 #  # Run ARA to count for each tag
 
-for bamfile in `ls $bamdir | grep ".bam$"`; do
-  bamname=`echo $bamfile | sed -e 's/[.]bam$//'`;
-  java -jar -Xmx10G /home/nfs/thiesgehrmann/groups/w/phd/tasks/karyon_specific_expression/show_marcel/ara/build/ara.jar snp-typer --marker "$output_dir/UniqueMarkers_all.fasta" -t 1 --paired -o "$output_dir/MarkerCounts_${bamname}.tsv" "$bamdir/$bamfile"
+cat $data_file | grep -v '^$' | grep -v '^[ \t]*#' | while read data_line; do
+  sample_name=`echo "$data_line" | cut -f1`;
+  replicate_id=`echo "$data_line" | cut -f2`;
+  replicate_label=`echo "$data_line" | cut -f3`;
+  bam_file=`echo "$data_line" | cut -f4`;
+  if [ "$paired" = 'Y' ]; then
+    paired='--paired'
+  else
+    paired='';
+  fi
+  
+  java -jar -Xmx10G /home/nfs/thiesgehrmann/groups/w/phd/tasks/karyon_specific_expression/show_marcel/ara/build/ara.jar snp-typer --marker "$output_dir/UniqueMarkers_all.fasta" -t 1 $paired -o "$output_dir/MarkerCounts_${sample_name}.tsv" "$bam_file"
 done
 
 
 ###############################################################################
 # Analysis of tag counts
 
-
+analysis.py $data_file $genome_files $gff_files $output_dir $tissue_figure
 ###############################################################################
+
