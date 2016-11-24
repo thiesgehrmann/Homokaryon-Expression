@@ -1,5 +1,12 @@
 #!/bin/sh
 
+###############################################################################
+# CONFIGURATION
+
+ARALOC="/home/nfs/thiesgehrmann/groups/w/phd/tasks/karyon_specific_expression/show_marcel/ara/build/ara.jar"
+
+###############################################################################
+
 function usage(){
 
   echo "$0 Usage"
