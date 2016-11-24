@@ -48,14 +48,16 @@ n_genomes=`echo $genome_files | tr ',' '\n' | wc -l`
 
 ###############################################################################
 # Mapping - Identify pairs
-#./mapping.py $genome_files $gff_files "$output_dir"
+echo "PERFORMING MAPPING"
+./mapping.py $genome_files $gff_files "$output_dir"
 
 mapping_files_produced=`for x in $(seq 0 $((n_genomes-1))); do echo "$output_dir/mapping_${x}.fasta"; done | tr '\n' ',' | sed -e 's/,$//'`
 
 ###############################################################################
 # Identify unique sequences that uniquely identify genes between groups of genes
 #~/scala-2.11.7/bin/scala -J-Xmx30G uniqueProbes "$mapping_files_produced" "$genome_files" 21 "$output_dir/UniqueMarkers"
-#java -jar -Xmx10G ../ara/build/ara.jar unique-markers "$mapping_files_produced" "$genome_files" 21 "$output_dir/UniqueMarkers"
+echo "IDENTIFYING UNIQUE MARKERS"
+java -jar -Xmx10G $ARALOC unique-markers "$mapping_files_produced" "$genome_files" 21 "$output_dir/UniqueMarkers"
 
 # Merge all these unique tags into one file
 find "$output_dir"  | grep -e "UniqueMarkers_[0-9]\+[.]fasta" | xargs cat > $output_dir/UniqueMarkers_all.fasta
@@ -69,6 +71,7 @@ find "$output_dir"  | grep -e "UniqueMarkers_[0-9]\+[.]fasta" | xargs cat > $out
 #  print
 #  # Run ARA to count for each tag
 
+echo "COUNTING MARKERS IN EACH SAMPLE"
 cat $data_file | grep -v '^$' | grep -v '^[ \t]*#' | sed -e 's/[ \t]\+/ /g' | while read data_line; do
   sample_name=`echo "$data_line" |  cut -d\  -f1`;
   replicate_id=`echo "$data_line" | cut -d\  -f2`;
@@ -86,13 +89,13 @@ cat $data_file | grep -v '^$' | grep -v '^[ \t]*#' | sed -e 's/[ \t]\+/ /g' | wh
   echo $replicate_label
   echo $bam_file
   
-  java -jar -Xmx10G /home/nfs/thiesgehrmann/groups/w/phd/tasks/karyon_specific_expression/show_marcel/ara/build/ara.jar snp-typer --marker "$output_dir/UniqueMarkers_all.fasta" -t 1 $paired -o "$output_dir/MarkerCounts_${sample_name}.tsv" "$bam_file"
+  java -jar -Xmx10G $ARALOC snp-typer --marker "$output_dir/UniqueMarkers_all.fasta" -t 1 $paired -o "$output_dir/MarkerCounts_${sample_name}.tsv" "$bam_file"
 done
 
 
 ###############################################################################
 # Analysis of tag counts
 
-./analysis.py $data_file $genome_files $gff_files $output_dir $tissue_figure
+./simple_analysis.py $data_file $genome_files $gff_files $output_dir $tissue_figure
 ###############################################################################
 

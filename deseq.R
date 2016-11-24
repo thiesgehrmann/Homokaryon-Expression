@@ -29,7 +29,8 @@ countsTable <- read.delim(deseq_input, header=FALSE)
 conds <- as.character(as.matrix(countsTable[1,]))[-1]
 genegroups <- as.character(as.matrix(countsTable$V1))[-1]
 countsTable <- countsTable[-1,-1]
-countsTable <- apply(as.matrix(countsTable),2,as.numeric)
+countsTable <- apply(as.matrix(countsTable),2,as.numeric) # Doesn't work if there is only one gene, like in the example
+#countsTable <- t(as.matrix(apply(as.matrix(countsTable),2,as.numeric)))
 countsTable <- round(countsTable, 0)
 rownames(countsTable) <- genegroups
 
@@ -63,11 +64,11 @@ sf <- sampleSizes / max(sampleSizes)
 sizeFactors(cds) <- rep(sf, each=2)
 cds <- tryCatch({estimateDispersions( cds )}, error = function(e){estimateDispersions( cds ,fitType="local")})
 
-
-plotDispEsts(cds)
-pdf(sprintf("%s.DispEsts.pdf", output_prefix))
-plotDispEsts(cds)
-dev.off()
+  # Doesn't work for the fake example, so I've commented it out. It works for real data though! Promise!
+#plotDispEsts(cds)
+#pdf(sprintf("%s.DispEsts.pdf", output_prefix))
+#plotDispEsts(cds)
+#dev.off()
 
 Lcounts <- list()
 Lres <- list()
