@@ -1,4 +1,4 @@
-#samplename	replicate_id	replicate_label	bam_file
+#sample_name	replicate_id	replicate_label	bam_file
 Casing_C_26	0	Veg	/home/nfs/thiesgehrmann/bulk/unaligned_bam/agabi/Casing_C_26.bam
 Casing_C_27	0	Veg	/home/nfs/thiesgehrmann/bulk/unaligned_bam/agabi/Casing_C_27.bam
 Initials_I272	1	Initials	/home/nfs/thiesgehrmann/bulk/unaligned_bam/agabi/Initials_I272.bam

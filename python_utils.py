@@ -2,8 +2,12 @@ import sys;
 import shlex, subprocess;
 import multiprocessing;
 import os;
+import pandas as pd
+import numpy as np;
 
 ###############################################################################
+# Running commands
+# Taken from my RNA-Seq pipeline
 
 def run_cmd(cmd, bg = False, stdin = None, stdout = None, stderr = None):
     print '[RUN CMD] Executing: %s' % cmd
@@ -41,8 +45,6 @@ def getCommandOutput(cmd):
     if p.returncode != 0:
         raise RuntimeError, "Command failed: " + str(res) + "\n" + cmd;
     return res
-
-###############################################################################
 
 def run_par_cmds(cmd_list, max_threads=5, stdin=None, stdout=None, stderr=None, shell=False):
   
@@ -83,8 +85,6 @@ def run_par_cmds(cmd_list, max_threads=5, stdin=None, stdout=None, stderr=None, 
   return retval;
 #edef
 
-###############################################################################
-
 def run_seq_cmds(cmd_list, stdin=None, stdout=None, stderr=None):
 
   for cmd in [ x for x in cmd_list if x ]:
@@ -119,8 +119,10 @@ def translate(seq):
 ###############################################################################
   # Color utilities
 
+default_colors = [(0, 0, 255), (255, 255, 255), (255, 0, 0)]  # [BLUE, WHITE, RED]
+
 # from http://stackoverflow.com/questions/20792445/calculate-rgb-value-for-a-range-of-values-to-create-heat-map
-def convert_to_rgb(minval, maxval, val, colors):
+def convert_to_rgb(minval, maxval, val, colors=default_colors):
   max_index = len(colors)-1
   v = float(val-minval) / float(maxval-minval) * max_index
   i1, i2 = int(v), min(int(v)+1, max_index)
@@ -129,6 +131,65 @@ def convert_to_rgb(minval, maxval, val, colors):
   return int(r1 + f*(r2-r1)), int(g1 + f*(g2-g1)), int(b1 + f*(b2-b1))
 #edef
 
+def rgb2frac((r,g,b)):
+  return (r/255.0, g/255.0, b/255.0);
+#edef
+
 def rgb2hex((r, g, b)):
   return '%02x%02x%02x' % (r, g, b)
 #edef
+
+###############################################################################
+# Natural string sorting
+# From http://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside
+
+import re
+
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [ atoi(c) for c in re.split('(\d+)', text) ]
+
+def natural_sort(list):
+  return sorted(list, key=natural_keys)
+#edef
+
+###############################################################################
+
+# Scale a set of numbers in such a way that 'mid' is always in the middle. This will produce two functions
+# 1: All numbers less than 'mid' are scaled to be between 0 and 0.5.
+# 2: All numbers >= to 'mid' are scaled to be between 0.5 and 1.0.
+def norm(min, mid, max, x):
+
+  nmin = 0;
+  nmid = 0.5
+  nmax = 1.0
+
+  if x > max:
+    return nmax;
+  if x < min:
+    return nmin;
+  if x < mid:
+    return  (x-min) * (nmid / (mid - min))
+  else:
+    return (x-mid) * ((nmax - nmid) / (max - mid)) + nmid
+  #fi
+#edef
+
+###############################################################################
+
+def rep_to_df(rep):
+  names = rep.Names;
+  data = rep();
+
+  df = pd.DataFrame({ n : d for (n,d) in zip(names, data) })
+
+  return df[names];
+#edef
+

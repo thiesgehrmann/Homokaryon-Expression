@@ -1,4 +1,4 @@
-#samplename	replicate_id	replicate_label	bam_file
+#sample_name	replicate_id	replicate_label	bam_file
 day16_1	0	day16	/home/nfs/thiesgehrmann/groups/w/phd/data/RNASEQ_DATA/patyshakuliyeva_SRP053427/SRR1796335.bam
 day16_2	0	day16	/home/nfs/thiesgehrmann/groups/w/phd/data/RNASEQ_DATA/patyshakuliyeva_SRP053427/SRR1796336.bam
 pinning_1	1	pinning	/home/nfs/thiesgehrmann/groups/w/phd/data/RNASEQ_DATA/patyshakuliyeva_SRP053427/SRR1796337.bam

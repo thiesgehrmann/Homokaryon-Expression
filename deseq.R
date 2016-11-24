@@ -20,8 +20,8 @@ plotDispEsts <- function( cds ){
 
 args <- commandArgs(trailingOnly = TRUE)
 
-deseq_input = args[1];
-output_dir  = args[2];
+deseq_input   = args[1];
+output_prefix = args[2];
 
 ###############################################################################
 
@@ -53,7 +53,7 @@ condLibRatios <- data.frame(r1=sampleLibRatios[c(rep(F, length(conds)/4), rep(T,
 condLibRatios <- transform(condLibRatios, AVG=apply(condLibRatios,1, mean, na.rm = TRUE), SD=apply(condLibRatios,1, sd, na.rm = TRUE), VAR=apply(condLibRatios,1, var, na.rm = TRUE))
 rownames(condLibRatios) <- cond_names
 
-write.table(condLibRatios, file=sprintf("%s/deseq_condlibratios.tsv", output_dir), sep='\t', row.names=TRUE, col.names=FALSE, quote=FALSE)
+write.table(condLibRatios, file=sprintf("%s.condlibratios.tsv", output_prefix), sep='\t', row.names=TRUE, col.names=FALSE, quote=FALSE)
 
 # Determine my own scaling factors:
 # Library sizes are based on the two columns from the same sample
@@ -61,11 +61,11 @@ write.table(condLibRatios, file=sprintf("%s/deseq_condlibratios.tsv", output_dir
 sampleSizes <- (libSizes[c(T,F)] + libSizes[c(F,T)])
 sf <- sampleSizes / max(sampleSizes)
 sizeFactors(cds) <- rep(sf, each=2)
-cds <- estimateDispersions( cds )
+cds <- tryCatch({estimateDispersions( cds )}, error = function(e){estimateDispersions( cds ,fitType="local")})
 
 
 plotDispEsts(cds)
-jpeg(sprintf("%s/DispEsts_DESeq.jpg", output_dir))
+pdf(sprintf("%s.DispEsts.pdf", output_prefix))
 plotDispEsts(cds)
 dev.off()
 
@@ -74,7 +74,7 @@ Lres <- list()
 for(cond in cond_names) {
   cond_pair = paste(org_names, cond, sep='|')
   res <- nbinomTest( cds, cond_pair[[1]], cond_pair[[2]] )
-  pdf(sprintf("%s/MAplot_%s.pdf", output_dir, cond));
+  pdf(sprintf("%s.MAplot.%s.pdf", output_prefix, cond));
   plotMA(res)
   dev.off()
   nares <- res[(! is.na(res$padj)),]
@@ -89,8 +89,8 @@ for(cond in cond_names) {
 }
 Lcounts <- t(data.frame(Lcounts))
 rownames(Lcounts) <- NULL
-write.table(Lcounts, file=sprintf("%s/deseq_output.tsv", output_dir), sep='\t', col.names=FALSE, row.names=FALSE, quote=FALSE)
+write.table(Lcounts, file=sprintf("%s.output.tsv", output_prefix), sep='\t', col.names=FALSE, row.names=FALSE, quote=FALSE)
 
-write.table(do.call("rbind", Lres), file=sprintf("%s/deseq_tests.tsv", output_dir), sep='\t', col.names=FALSE, row.names=TRUE, quote=FALSE);
+write.table(do.call("rbind", Lres), file=sprintf("%s.tests.tsv", output_prefix), sep='\t', col.names=FALSE, row.names=FALSE, quote=FALSE);
 
 
