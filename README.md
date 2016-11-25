@@ -1,6 +1,6 @@
 # Homokaryon expression
 The discovery and analysis of homokaryon specific expression
-![The General Overview of Homokaryon Specific Expression](figure0.png)
+![The General Overview of Homokaryon Specific Expression](readme/figure0.png)
 ## Usage
 
 ### Dependencies
@@ -19,7 +19,7 @@ The discovery and analysis of homokaryon specific expression
   In the /pipeline.sh/ file, change the variable ARALOC, to match your own setup.
 
 ### Execution of pipeline
-   ./pipeline.sh <genome1.fasta,genome2.fasta> <genome1.gff,genome2.gff> <output_dir> <data_file> <paired>
+   ./pipeline.sh \<genome1.fasta,genome2.fasta\> \<genome1.gff,genome2.gff\> \<output_dir\> \<data_file\> \<paired\>
 
   * genome1.fasta: The multifasta genome sequence of genome 1
   * genome2.fasta: The multifasta genome sequence of genome 2
@@ -59,6 +59,7 @@ The discovery and analysis of homokaryon specific expression
 
 
 ### Example Output
+  ![Some output figures of the analysis when run on the example dataset](readme/example_output.png)
   The script produces quite a lot of output files.
   In the example, most are probably not particularly interesting, but if your dataset contains more than 2 genes, it will be.
   Here I describe some of the output files, ordered by creation time.
