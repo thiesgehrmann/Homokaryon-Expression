@@ -3,6 +3,18 @@ The discovery and analysis of homokaryon specific expression
 ![The General Overview of Homokaryon Specific Expression](figure0.png)
 ## Usage
 
+### Dependencies
+  This tool does require some other packages. This should be all of them:
+  * Ibidas (https://github.com/thiesgehrmann/ara)
+  * Numpy
+  * scipy
+  * seaborn
+  * Matplotlib
+  * Pandas
+  * ara (https://github.com/thiesgehrmann/ara)
+  * R
+  * DESeq
+
 ### Configuration
   In the /pipeline.sh/ file, change the variable ARALOC, to match your own setup.
 
@@ -41,7 +53,7 @@ The discovery and analysis of homokaryon specific expression
   * [example_data/sample2_2.bam](example_data/sample2_2.bam)
 
 
-### Output
+### Example Output
   The script produces quite a lot of output files.
   In the example, most are probably not particularly interesting, but if your dataset contains more than 2 genes, it will be.
   Here I describe some of the output files, ordered by creation time.
@@ -106,22 +118,11 @@ The discovery and analysis of homokaryon specific expression
     * chr.read_ratio_log.svg: CRR with log scales
     * chr.read_ratio_log.png
 
-### Real data
+## Real data
 
   Additionally, if you are willing dow download your own data, there are two configuration files provided for two publicly available datasets:
   * agabi_compost_nodup.tsv: https://www.ncbi.nlm.nih.gov/bioproject/309475
   * agabi_compost_data.tsv: https://www.ncbi.nlm.nih.gov/bioproject/PRJNA275107
 
-These can be run with the script "pipeline.sh"
 
-
-## Dependencies
-This pipeline makes use of
-  * Ibidas (https://github.com/thiesgehrmann/ara)
-  * Numpy
-  * Matplotlib
-  * 
-  * ara (https://github.com/thiesgehrmann/ara)
-  * R
-  * DESeq
 

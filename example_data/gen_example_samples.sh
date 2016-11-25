@@ -54,11 +54,13 @@ function getseqn(){
 
 ###############################################################################
 
+# Get each sequence
 seqa1=`getseqn $g1_file 1`
 seqa2=`getseqn $g1_file 2`
 seqb1=`getseqn $g2_file 1`
 seqb2=`getseqn $g2_file 2`
 
+# Construct the sample FASTQ files
 makesample $seqa1 $seqb1 100 440 sample1_1 > sample1_1.fastq
 makesample $seqa2 $seqb2 150 50 sample1_1 >> sample1_1.fastq
 
@@ -71,6 +73,7 @@ makesample $seqa2 $seqb2 40 120 sample2_1 >> sample2_1.fastq
 makesample $seqa1 $seqb1 440 120 sample2_2 > sample2_2.fastq
 makesample $seqa2 $seqb2 60 100 sample2_2 >> sample2_2.fastq
 
+# Convert to BAM
 java -Xmx10G -jar $PICARD  FastqToSam "FASTQ=./sample1_1.fastq" "OUTPUT=./sample1_1.bam" "SAMPLE_NAME=sample1_1"
 java -Xmx10G -jar $PICARD  FastqToSam "FASTQ=./sample1_2.fastq" "OUTPUT=./sample1_2.bam" "SAMPLE_NAME=sample1_2"
 java -Xmx10G -jar $PICARD  FastqToSam "FASTQ=./sample2_1.fastq" "OUTPUT=./sample2_1.bam" "SAMPLE_NAME=sample2_1"
