@@ -63,6 +63,7 @@ The discovery and analysis of homokaryon specific expression
   The script produces quite a lot of output files.
   In the example, most are probably not particularly interesting, but if your dataset contains more than 2 genes, it will be.
   Here I describe some of the output files, ordered by creation time.
+  In the figure above, the three subfigures (A), (B) and (C) are annotated in the list below.
   * *Mapping stage*
     * mapping.tsv: The list of all mapped gene identifiers
     * mapping_0.fasta: The list of mapped genes in first organism organism, where the n<sup>th</sup> gene in the file is mapped to the n<sup>th</sup> gene in the mapping_1.fasta file.
@@ -102,10 +103,10 @@ The discovery and analysis of homokaryon specific expression
     * diff_regulated.tsv: The differentially expressed genes
     * diff_regulated_ids.tsv: The identifiers of differentially expressed genes
     * gene_ratio_stats.tsv: Gene read ratio (GRR) statistics
-    * genes.differentiable.png: A graphical visualization of the genes that are differntiable by markers
+    * *(A) genes.differentiable.png*: A graphical visualization of the genes that are differntiable by markers
     * genes.gene_ratio_chromosome.all.png: A graphical visualization, as above, where the GRR is shown on top of the genes, averaged across all samples.
     * genes.gene_ratio_chromosome.all.svg
-    * genes.gene_ratio_chromosome.sample1.png: A graphical visualization of the differntially expressed genes in sample 1
+    * *(B) genes.gene_ratio_chromosome.sample1.png*: A graphical visualization of the differntially expressed genes in sample 1
     * genes.gene_ratio_chromosome.sample1.svg
     * genes.gene_ratio_chromosome.sample2.png
     * genes.gene_ratio_chromosome.sample2.svg
@@ -119,7 +120,7 @@ The discovery and analysis of homokaryon specific expression
     * chr.gene_ratio.png
     * chr.read_ratio.svg: Chromosome Read Ratio (CRR) for each chromosome and sample
     * chr.read_ratio.png
-    * chr.gene_ratio_log.svg: CGR with log scales
+    * *(C) chr.gene_ratio_log.svg*: CGR with log scales
     * chr.gene_ratio_log.png
     * chr.read_ratio_log.svg: CRR with log scales
     * chr.read_ratio_log.png
