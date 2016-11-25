@@ -6,11 +6,23 @@ The discovery and analysis of homokaryon specific expression
 ### Configuration
   In the /pipeline.sh/ file, change the variable ARALOC, to match your own setup.
 
-### Running the example dataset
+### Execution of pipeline
+   ./pipeline.sh <genome1.fasta,genome2.fasta> <genome1.gff,genome2.gff> <output_dir> <data_file> <paired>
+
+  * genome1.fasta: The multifasta genome sequence of genome 1
+  * genome2.fasta: The multifasta genome sequence of genome 2
+  * genome1.gff:   The GFF3 file for genome 1
+  * genome2.gff:   The GFF3 file for genome 2
+  * output_dir:    The output location
+  * data_file:     A description file describining each sample
+  * paired:        [Y|N] Is it paired end data Yes or No?
+ 
+
+## Example dataset
   By running ./run_example.sh, the example dataset will be run. Output will be produced in output_example.
   Execution time for the example is approximately 90 seconds.
 
-### Input
+### Example Input
   As an example, I will describe the input files for the example
 
   * [example_data/dataset.tsv](example_data/dataset.tsv): A tab separated file containing a description of the samples and their replicates and names.
@@ -73,29 +85,26 @@ The discovery and analysis of homokaryon specific expression
     * diff_regulated_ids.tsv: The identifiers of differentially expressed genes
     * gene_ratio_stats.tsv: Gene read ratio (GRR) statistics
     * genes.differentiable.png: A graphical visualization of the genes that are differntiable by markers
-    * genes.gene_ratio_chromosome.all.png: A graphical visualization, as above, where the GRR is shown on top of the genes
+    * genes.gene_ratio_chromosome.all.png: A graphical visualization, as above, where the GRR is shown on top of the genes, averaged across all samples.
     * genes.gene_ratio_chromosome.all.svg
     * genes.gene_ratio_chromosome.sample1.png: A graphical visualization of the differntially expressed genes in sample 1
     * genes.gene_ratio_chromosome.sample1.svg
     * genes.gene_ratio_chromosome.sample2.png
     * genes.gene_ratio_chromosome.sample2.svg
-    * genes.gene_ratio_chromosome.abs.all.png
+    * genes.gene_ratio_chromosome.abs.all.png: Same as above, except that the threshold for expression is set at a ratio of 1.
     * genes.gene_ratio_chromosome.abs.all.svg
     * genes.gene_ratio_chromosome.abs.sample1.png
     * genes.gene_ratio_chromosome.abs.sample1.svg
     * genes.gene_ratio_chromosome.abs.sample2.png
     * genes.gene_ratio_chromosome.abs.sample2.svg
-    * chr.gene_ratio.svg
+    * chr.gene_ratio.svg: Chromosome Gene Ratio (CGR) for each chromosome and sample
     * chr.gene_ratio.png
-    * chr.read_ratio.svg
+    * chr.read_ratio.svg: Chromosome Read Ratio (CRR) for each chromosome and sample
     * chr.read_ratio.png
-    * chr.gene_ratio_log.svg
+    * chr.gene_ratio_log.svg: CGR with log scales
     * chr.gene_ratio_log.png
-    * chr.read_ratio_log.svg
+    * chr.read_ratio_log.svg: CRR with log scales
     * chr.read_ratio_log.png
-
-
-
 
 ### Real data
 
