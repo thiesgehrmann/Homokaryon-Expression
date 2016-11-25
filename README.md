@@ -103,10 +103,10 @@ The discovery and analysis of homokaryon specific expression
     * diff_regulated.tsv: The differentially expressed genes
     * diff_regulated_ids.tsv: The identifiers of differentially expressed genes
     * gene_ratio_stats.tsv: Gene read ratio (GRR) statistics
-    * *(A) genes.differentiable.png*: A graphical visualization of the genes that are differntiable by markers
+    * **(A) genes.differentiable.png**: A graphical visualization of the genes that are differntiable by markers
     * genes.gene_ratio_chromosome.all.png: A graphical visualization, as above, where the GRR is shown on top of the genes, averaged across all samples.
     * genes.gene_ratio_chromosome.all.svg
-    * *(B) genes.gene_ratio_chromosome.sample1.png*: A graphical visualization of the differntially expressed genes in sample 1
+    * **(B) genes.gene_ratio_chromosome.sample1.png**: A graphical visualization of the differntially expressed genes in sample 1
     * genes.gene_ratio_chromosome.sample1.svg
     * genes.gene_ratio_chromosome.sample2.png
     * genes.gene_ratio_chromosome.sample2.svg
@@ -120,7 +120,7 @@ The discovery and analysis of homokaryon specific expression
     * chr.gene_ratio.png
     * chr.read_ratio.svg: Chromosome Read Ratio (CRR) for each chromosome and sample
     * chr.read_ratio.png
-    * *(C) chr.gene_ratio_log.svg*: CGR with log scales
+    * **(C) chr.gene_ratio_log.svg**: CGR with log scales
     * chr.gene_ratio_log.png
     * chr.read_ratio_log.svg: CRR with log scales
     * chr.read_ratio_log.png
