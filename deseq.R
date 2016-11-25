@@ -18,6 +18,9 @@ plotDispEsts <- function( cds ){
 
 ###############################################################################
 
+deseq_input <- "example_output/DESEQ_genes.input.tsv"
+output_prefix <- "example_output"
+
 args <- commandArgs(trailingOnly = TRUE)
 
 deseq_input   = args[1];
@@ -29,7 +32,7 @@ countsTable <- read.delim(deseq_input, header=FALSE)
 conds <- as.character(as.matrix(countsTable[1,]))[-1]
 genegroups <- as.character(as.matrix(countsTable$V1))[-1]
 countsTable <- countsTable[-1,-1]
-countsTable <- apply(as.matrix(countsTable),2,as.numeric) # Doesn't work if there is only one gene, like in the example
+countsTable <- apply(as.matrix(countsTable),2,as.numeric) # Doesn't work if there is only one gene
 #countsTable <- t(as.matrix(apply(as.matrix(countsTable),2,as.numeric)))
 countsTable <- round(countsTable, 0)
 rownames(countsTable) <- genegroups

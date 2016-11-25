@@ -46,16 +46,30 @@ function makeread() {
 
 }
 
+function getseqn(){
+  file_name=$1
+  n=$2
+  cat $file_name | tr '\n' ' ' | sed -e "s/>/\n>/g" | grep -v '^$' | cut -d\  -f1 --complement | tr -d ' ' | head -n $n | tail -n1
+}
+
 ###############################################################################
 
-seqa=`cat $g1_file  | grep -v '>' | tr -d '\n'`
-seqb=`cat $g2_file  | grep -v '>' | tr -d '\n'`
+seqa1=`getseqn $g1_file 1`
+seqa2=`getseqn $g1_file 2`
+seqb1=`getseqn $g2_file 1`
+seqb2=`getseqn $g2_file 2`
 
-makesample $seqa $seqb 20 40 sample1_1 > sample1_1.fastq
-makesample $seqa $seqb 22 38 sample1_2 > sample1_2.fastq
+makesample $seqa1 $seqb1 10 44 sample1_1 > sample1_1.fastq
+makesample $seqa2 $seqb2 15 5 sample1_1 >> sample1_1.fastq
 
-makesample $seqa $seqb 40 20 sample2_1 > sample2_1.fastq
-makesample $seqa $seqb 38 22 sample2_2 > sample2_2.fastq
+makesample $seqa1 $seqb1 12 40 sample1_2 > sample1_2.fastq
+makesample $seqa2 $seqb2 14 6 sample1_2 >> sample1_2.fastq
+
+makesample $seqa1 $seqb1 40 10 sample2_1 > sample2_1.fastq
+makesample $seqa2 $seqb2 4 12 sample2_1 >> sample2_1.fastq
+
+makesample $seqa1 $seqb1 44 12 sample2_2 > sample2_2.fastq
+makesample $seqa2 $seqb2 6 10 sample2_2 >> sample2_2.fastq
 
 java -Xmx10G -jar $PICARD  FastqToSam "FASTQ=./sample1_1.fastq" "OUTPUT=./sample1_1.bam" "SAMPLE_NAME=sample1_1"
 java -Xmx10G -jar $PICARD  FastqToSam "FASTQ=./sample1_2.fastq" "OUTPUT=./sample1_2.bam" "SAMPLE_NAME=sample1_2"
