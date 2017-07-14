@@ -1,0 +1,10 @@
+{
+  "outdir": "./",
+  "genomes": {
+    "genome_1" : {"name": "genome_1", "genome": "PLEASE SPECIFY GENOME FILE", "gff": "PLEASE SPECIFY GFF FILE" },
+    "genome_2" : {"name": "genome_2", "genome": "PLEASE SPECIFY GENOME FILE", "gff": "PLEASE SPECIFY GFF FILE" }
+  },
+  "data": {},
+  "blast_fields": "qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore slen qlen",
+  "minMarkers" : 5
+}
