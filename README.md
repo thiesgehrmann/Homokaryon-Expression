@@ -14,7 +14,8 @@ git clone https://github.com/thiesgehrmann/Homokaryon-Expression.git
 ```
 
 ### Dependencies
-  This tool delegates all package requirements to conda, and makes use of Snakemake as an implementation framework
+  This tool delegates all package requirements to conda, and makes use of Snakemake as an implementation framework.
+  For a list of the dependencies required, please see [the conda configuration file](pipeline_components/snakemake.yaml).
   * [Conda](https://conda.io/docs/)
   * [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
