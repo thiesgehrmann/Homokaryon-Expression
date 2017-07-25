@@ -48,12 +48,12 @@ You must provide the following information to examine homokaryon specific expres
 
  * Homokaryon 1:
    * Genome file (FASTA format)
-   * GFF file ([http://gmod.org/wiki/GFF3](GFF3) format, with 'mRNA' transcript type identifiers)
+   * GFF file ( [http://gmod.org/wiki/GFF3](GFF3) format, with 'mRNA' transcript type identifiers)
  * Homokaryon 2:
    * Genome file (FASTA format)
    * GFF file (GFF3 format)
  * Samples:
-   * [https://gatkforums.broadinstitute.org/gatk/discussion/6484/how-to-generate-an-unmapped-bam-from-fastq-or-aligned-bam#optionA](Unaligned BAM files) (sorted by read name)
+   * [https://gatkforums.broadinstitute.org/gatk/discussion/6484/how-to-generate-an-unmapped-bam-from-fastq-or-aligned-bam](Unaligned BAM files) (sorted by read name)
    * Replicates (untested without replicates)
 
 Please see the configuration file example.json for an overview of how to configure the pipeline.
