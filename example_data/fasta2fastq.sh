@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# Read FASTA files, and output a FASTQ formatted file, using a quality score of I for each base in the read
+
 awk '
 BEGIN{
   head = ""
