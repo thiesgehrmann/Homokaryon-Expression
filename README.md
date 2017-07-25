@@ -15,10 +15,10 @@ git clone https://github.com/thiesgehrmann/Homokaryon-Expression.git
 
 ### Dependencies
   This tool delegates all package requirements to conda, and makes use of Snakemake as an implementation framework
-  * [https://conda.io/docs/](Conda)
-  * [https://snakemake.readthedocs.io/en/stable/](Snakemake)
+  * [Conda](https://conda.io/docs/)
+  * [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 
-  The tool also makes use of an additional toolkit, called [https://github.com/AbeelLab/ara/](ARA), but this is automatically downloaded and build by the pipeline.
+  The tool also makes use of an additional toolkit, called [Ara](https://github.com/AbeelLab/ara/), but this is automatically downloaded and build by the pipeline.
 
 ## Example dataset
   As an example dataset, I provided the sequence of chromosome 13 from P1 and P2 of *Agaricus bisporus*, and the genes described on that genome in the folder `example_data`.
@@ -48,12 +48,12 @@ You must provide the following information to examine homokaryon specific expres
 
  * Homokaryon 1:
    * Genome file (FASTA format)
-   * GFF file ( [http://gmod.org/wiki/GFF3](GFF3) format, with 'mRNA' transcript type identifiers)
+   * GFF file ( [GFF3](http://gmod.org/wiki/GFF3) format, with 'mRNA' transcript type identifiers)
  * Homokaryon 2:
    * Genome file (FASTA format)
    * GFF file (GFF3 format)
  * Samples:
-   * [https://gatkforums.broadinstitute.org/gatk/discussion/6484/how-to-generate-an-unmapped-bam-from-fastq-or-aligned-bam](Unaligned BAM files) (sorted by read name)
+   * [Unaligned BAM files](https://gatkforums.broadinstitute.org/gatk/discussion/6484/how-to-generate-an-unmapped-bam-from-fastq-or-aligned-bam]) (sorted by read name)
    * Replicates (untested without replicates)
 
 Please see the configuration file example.json for an overview of how to configure the pipeline.
