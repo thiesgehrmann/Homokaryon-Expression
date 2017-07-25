@@ -1,0 +1,5 @@
+#sample_name	replicate_id	replicate_label	bam_file
+sample1_1	0	sample1	example_data/sample1_1.bam
+sample1_2	0	sample1	example_data/sample1_2.bam
+sample2_1	1	sample2	example_data/sample2_1.bam
+sample2_2	1	sample2	example_data/sample2_2.bam

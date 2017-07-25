@@ -1,0 +1,10 @@
+##gff-version	3
+##sequence-region	scaffold_1	1	128
+genome1_p53	FAKE	gene	13	2170	.	+	.	ID=genome1|1|gene
+genome1_p53	FAKE	mRNA	13	2170	.	+	.	ID=genome1|1;Parent=genome1|1|gene;proteinId=genome1|1;Name=genome1|1
+genome1_p53	FAKE	exon	13	2170	.	+	.	ID=genome1|1|exon1;Parent=genome1|1
+genome1_p53	FAKE	CDS	13	2170	.	+	0	ID=genome1|1|CDS;Parent=genome1|1
+genome1_mapk	FAKE	gene	13	1500	.	+	.	ID=genome1|2|gene
+genome1_mapk	FAKE	mRNA	13	1500	.	+	.	ID=genome1|2;Parent=genome1|2|gene;proteinId=genome1|2;Name=genome1|2
+genome1_mapk	FAKE	exon	13	1500	.	+	.	ID=genome1|2|exon1;Parent=genome1|2
+genome1_mapk	FAKE	CDS	13	1500	.	+	0	ID=genome1|2|CDS;Parent=genome1|2
