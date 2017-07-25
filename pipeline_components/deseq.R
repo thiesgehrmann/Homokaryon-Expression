@@ -18,9 +18,6 @@ plotDispEsts <- function( cds ){
 
 ###############################################################################
 
-deseq_input <- "example_output/DESEQ_genes.input.tsv"
-output_prefix <- "example_output"
-
 args <- commandArgs(trailingOnly = TRUE)
 
 deseq_input   = args[1];
@@ -46,24 +43,17 @@ countsTable <- na.omit(countsTable)
 
 cds <- newCountDataSet( countsTable, conds )
 
-# Here we observe the differences in expression between the two samples.
-# We sum the total read counts for each homokaryon in each sample, and then we compare the two within each sample.
-# We look at the distribution of these values for the two replicates.
-# This is put in condLibRatios
-#libSizes <- colSums(countsTable)
-#sampleLibRatios <- libSizes[c(TRUE, FALSE)] / libSizes[c(FALSE, TRUE)]
-#condLibRatios <- data.frame(r1=sampleLibRatios[c(rep(F, length(conds)/4), rep(T, length(conds)/4))], r2=sampleLibRatios[rev(c(rep(F, length(conds)/4), rep(T, length(conds)/4)))])
-#condLibRatios <- transform(condLibRatios, AVG=apply(condLibRatios,1, mean, na.rm = TRUE), SD=apply(condLibRatios,1, sd, na.rm = TRUE), VAR=apply(condLibRatios,1, var, na.rm = TRUE))
-#rownames(condLibRatios) <- cond_names
-#write.table(condLibRatios, file=sprintf("%s.condlibratios2.tsv", output_prefix), sep='\t', row.names=TRUE, col.names=FALSE, quote=FALSE)
-
 # Determine my own scaling factors:
 # Library sizes are based on the two columns from the same sample
-# And then estimate the dispersions
 libSizes <- colSums(countsTable)
 sampleSizes <- (libSizes[c(T,F)] + libSizes[c(F,T)])
 sf <- sampleSizes / max(sampleSizes)
 sizeFactors(cds) <- rep(sf, each=2)
+
+# Estimate dispersions
+# Often for smaller datasets, DESeq doesn't manage to estimate the dispersion with the normal parameters
+# For example, this is the case with the example dataset.
+# Therefore, we try the normal method, and if it fails, we perform a local fit, which usually works.
 cds <- tryCatch({
   print("Estimating dispersions...")
   return(estimateDispersions( cds ))
@@ -77,7 +67,7 @@ cds <- tryCatch({
   })
 })
 
-  # Doesn't work for the fake example, so I've commented it out. It works for real data though! Promise!
+# Plot the estimated dispersions
 plotDispEsts(cds)
 pdf(sprintf("%s.DispEsts.pdf", output_prefix))
 plotDispEsts(cds)
@@ -85,12 +75,19 @@ dev.off()
 
 Lcounts <- list()
 Lres <- list()
+
+
+  # For each condition
 for(cond in cond_names) {
   cond_pair = paste(org_names, cond, sep='|')
+    # Do the test
   res <- nbinomTest( cds, cond_pair[[1]], cond_pair[[2]] )
+
+    # Draw an MA plot for each condition
   pdf(sprintf("%s.MAplot.%s.pdf", output_prefix, cond));
   plotMA(res)
   dev.off()
+
   nares <- res[(! is.na(res$padj)),]
   nA <- nrow(nares[nares$baseMeanA > nares$baseMeanB & nares$padj < 0.05, ])
   nB <- nrow(nares[nares$baseMeanA < nares$baseMeanB & nares$padj < 0.05, ])
@@ -98,13 +95,18 @@ for(cond in cond_names) {
 
   Lcounts[[length(Lcounts)+1]] <- c(cond, paste(cond_pair, collapse='.'), nA, nB, nE)
 
+    # Append the test output to Lres
   Lres[[length(Lres)+1]] <- cbind(condition = cond, condA = cond_pair[[1]], condB = cond_pair[[2]], res)
 
 }
+
 Lcounts <- t(data.frame(Lcounts))
 rownames(Lcounts) <- NULL
+
+  # Write the tests to file
 write.table(Lcounts, file=sprintf("%s.output.tsv", output_prefix), sep='\t', col.names=FALSE, row.names=FALSE, quote=FALSE)
 
+  # Write the counts to file
 write.table(do.call("rbind", Lres), file=sprintf("%s.tests.tsv", output_prefix), sep='\t', col.names=FALSE, row.names=FALSE, quote=FALSE);
 
 

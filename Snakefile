@@ -22,6 +22,7 @@ __KSE_OUTDIR__      = "%s/kse"% __RUN_DIR__
 
 ###############################################################################
 
+  # Download and build the ARA toolkit
 rule get_ara:
   output:
     ara = "%s/README.md" % __ARA_OUTDIR__
@@ -44,6 +45,7 @@ rule build_ara:
 
 ###############################################################################
 
+  # Given the FASTA and GFF files, generate the transcript sequences
 rule trans:
   input:
     genome = lambda wildcards: dconfig["genomes"][wildcards.genome]["genome"],
@@ -58,6 +60,7 @@ rule trans:
 
 ###############################################################################
 
+  # Generate blast databases for each genome
 rule mappingBlastDB:
   input:
     fa = lambda wildcards: "%s/trans.%s.fa" % (__TRANS_OUTDIR__, wildcards.genome)
@@ -69,6 +72,7 @@ rule mappingBlastDB:
     touch "{output.db}"
   """
 
+  # Blast genome_1 vs genome_2 and vice-versa
 rule mappingBlastQuery:
   input:
     db    = lambda wildcards: expand("%s/blastdb.{genome}.db" % (__MAPPING_OUTDIR__), genome=[wildcards.genome_1]),
@@ -83,7 +87,7 @@ rule mappingBlastQuery:
     blastn -num_threads "{threads}" -outfmt "6 {params.blast_fields}" -evalue 0.005 -query "{input.trans}" -db "{input.db}" -out "{output.res}"
   """
 
-# Perform a reciprocal best blast hit
+  # Perform a reciprocal best blast hit to identify karyollele pairs
 rule mapping:
   input:
     g1v2 = expand("%s/result.{genome_2}.{genome_1}.tsv" % __MAPPING_OUTDIR__, genome_1=["genome_1"], genome_2=["genome_2"]),
@@ -99,15 +103,19 @@ rule mapping:
   run:
     import pipeline_components.utils as utils
 
+      # Load the fasta sequences
     g1fa = utils.loadFasta(input.g1fa[0])
     g2fa = utils.loadFasta(input.g2fa[0])
 
+      # Load the blast hits
     g12Hits = utils.indexListBy(utils.readBlastFile(input.g1v2[0], params.blast_fields), lambda x: x.qseqid)
     g21Hits = utils.indexListBy(utils.readBlastFile(input.g2v1[0], params.blast_fields), lambda x: x.qseqid)
 
+      # For each gene, select the best hit in the other genome
     bestg12Hits = dict([ (qseqid, max(L, key=lambda x: x.bitscore)) for (qseqid,L) in g12Hits.items() ])
     bestg21Hits = dict([ (qseqid, max(L, key=lambda x: x.bitscore)) for (qseqid,L) in g21Hits.items() ])
 
+      # Match the best hits to identify reciprocal best hits, and write the mappings to file
     matches = []
     with open(output.mapping, "w") as ofd:
       for key in bestg12Hits.keys():
@@ -119,12 +127,14 @@ rule mapping:
       #efor
     #ewith
 
+      # Write the fasta files
     utils.writeFasta([ m[0] for m in matches], output.mapping1)
     utils.writeFasta([ m[1] for m in matches], output.mapping2)
 
 
 ###############################################################################
 
+  # Identify markers in the karyollele pairs
 rule markers:
   input:
     ara      = rules.build_ara.output.ara,
@@ -143,6 +153,7 @@ rule markers:
 
 ###############################################################################
 
+  # For each sample, quantify the markers
 rule quantification:
   input:
     ara     = rules.build_ara.output.ara,
@@ -160,6 +171,7 @@ rule quantification:
      >  "{output.quant}"
   """
 
+  # Summarize the markers per gene by averaging across all the markers
 rule summarizeQuantPerGene:
   input:
     quant = expand("%s/quant.{sample}.tsv" % __QUANT_OUTDIR__, sample=dconfig["data"].keys())
@@ -168,6 +180,7 @@ rule summarizeQuantPerGene:
   params:
     quants = [ (sample, "%s/quant.%s.tsv"% (__QUANT_OUTDIR__, sample)) for sample in dconfig["data"].keys() ]
   run:
+      # Read each individual sample file
     import csv
     SQ = { sample : {} for sample in dconfig["data"].keys()  }
     for (sample, quantFile) in params.quants:
@@ -187,6 +200,7 @@ rule summarizeQuantPerGene:
       #ewith
     #efor
 
+      # For each gene, calculate the average counts across all the markers identified
     T = []
     samples = sorted(dconfig["data"].keys())
     for gene in SQ[samples[0]].keys():
@@ -194,6 +208,7 @@ rule summarizeQuantPerGene:
       T.append( (gene, numMarkers) + tuple([ float(sum(SQ[sample][gene]))/float(numMarkers) for sample in samples]))
     #efor
 
+      # Write those averages to file
     with open(output.quant, "w") as ofd:
       ofd.write("#gene\tnumMarkers\t%s\n" % '\t'.join(samples))
       for geneQuant in T:
@@ -202,8 +217,8 @@ rule summarizeQuantPerGene:
    #ewith
 
 ###############################################################################
-# REDO THE DESEQ PART!
 
+  # Prepare the counts file for DESeq
 rule deseqInput:
   input:
     quant   = rules.summarizeQuantPerGene.output.quant,
@@ -245,12 +260,13 @@ rule deseqInput:
     #efor
 
     with open(output.formatted, "w") as ofd:
-      ofd.write("genegroup\t%s\n" % '\t'.join([ "%s|%s" % (genome, dconfig["data"][sample]["replicate_label"])  for sample in samples for genome in [ "genome1", "genome2"]]))
+      ofd.write("genegroup\t%s\n" % '\t'.join([ "%s|%s" % (genome, dconfig["data"][sample]["condition_label"])  for sample in samples for genome in [ "genome1", "genome2"]]))
       for (genome1Gene, genome2Gene, counts) in deseqRows:
         ofd.write("%s,%s\t%s\n" % (genome1Gene, genome2Gene, '\t'.join([ "%s\t%s"% (c1, c2) for (c1,c2) in counts])))
       #efor
     #ewith
 
+  # Run DESeq
 rule deseq:
   input:
     formattedQuant = rules.deseqInput.output.formatted 
@@ -265,6 +281,7 @@ rule deseq:
     Rscript {params.deseqWrapper} {input.formattedQuant} {params.outputPrefix}
   """
 
+  # Using the output from DESeq, produce a table with the normalized expression for each gene in each condition in a table
 rule deseqNorm:
   input:
     tests = rules.deseq.output.tests
@@ -298,6 +315,7 @@ rule deseqNorm:
       #efor
     #ewith
 
+  # And provide a little function to read this file
 def readDeseqNorm(quant, conditions):
   import csv
   Q = {}
@@ -315,6 +333,7 @@ def readDeseqNorm(quant, conditions):
 
 ###############################################################################
 
+  # Determine the gene Read Ratios (as described in the paper)
 rule geneReadRatios:
   input:
     mapping = rules.mapping.output.mapping,
@@ -347,6 +366,7 @@ rule geneReadRatios:
       #efor
     #ewith
 
+  # provide a function to read this file
 def readGeneReadRatios(grrFile, conditions):
   import csv
   grr = {}
@@ -362,6 +382,7 @@ def readGeneReadRatios(grrFile, conditions):
   return grr
 #edef
 
+  # Determine the chromosome read ratios (as described in the paper)
 rule chromosomeReadRatios:
   input:
     mapping = rules.mapping.output.mapping,
@@ -390,6 +411,7 @@ rule chromosomeReadRatios:
       ofd.write("%s\t%s\n" % (chromosome, '\t'.join([ str(x) for x in crr])))
     #efor
 
+  # Determine the nuclear read ratios (as described in the paper)
 rule nuclearReadRatios:
   input:
     mapping = rules.mapping.output.mapping,
@@ -411,6 +433,7 @@ rule nuclearReadRatios:
       #efor
     #ewith
 
+  # A wrapper rule to generate all read ratios
 rule readRatios:
   input:
     grr = rules.geneReadRatios.output.grr,
@@ -419,6 +442,7 @@ rule readRatios:
 
 ###############################################################################
 
+  # Determine the chromosome gene ratios (as described in the paper)
 rule chromosomeGeneRatios:
   input:
     mapping = rules.mapping.output.mapping,
@@ -448,6 +472,7 @@ rule chromosomeGeneRatios:
         ofd.write("%s\t%s\n" % (chromosome, '\t'.join([ str(x) for x in chrCGR])))
      #ewith
 
+  # Provide a function to read the output file of the previous rule
 def readChromosomeGeneRatios(cgrFile, conditions):
   import csv
   cgr = {}
@@ -463,6 +488,7 @@ def readChromosomeGeneRatios(cgrFile, conditions):
   return cgr
 #edef
 
+  # Determine the Nuclear Gene Ratios (as described in the paper)
 rule nuclearGeneRatios:
   input:
     mapping = rules.mapping.output.mapping,
@@ -486,10 +512,11 @@ rule nuclearGeneRatios:
       #efor
     #ewith
 
+  # A wrapper rule to generate all gene ratios.
 rule geneRatios:
   input:
     cgr = rules.chromosomeGeneRatios.output.cgr,
     ngr = rules.nuclearGeneRatios.output.ngr
 
 ###############################################################################
-    
+# Generate figures... still need to do. 
