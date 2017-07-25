@@ -65,8 +65,6 @@ Please see the configuration file example.json for an overview of how to configu
 If you use this tool in your work, please cite
 
 [Nucleus Specific Expression In The Multinucleated Mushroom-Forming Fungus Agaricus bisporus Reveals Different Nuclear Regulatory Programs](http://www.biorxiv.org/content/early/2017/07/04/141689),
-
 Thies Gehrmann, Jordi F. Pelkmans, Robin A. Ohm, Aurin M. Vos, Anton S. M. Sonnenberg, Johan J. P. Baars, Han A. B. Wosten, Marcel J. T. Reinders, Thomas Abeel,
-
 bioRxiv 141689; doi: https://doi.org/10.1101/141689
 
