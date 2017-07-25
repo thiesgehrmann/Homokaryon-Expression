@@ -1,5 +1,5 @@
 # Homokaryon expression
-The discovery and analysis of homokaryon specific expression, described in [Nucleus Specific Expression In The Multinucleated Mushroom-Forming Fungus *Agaricus bisporus* Reveals Different Nuclear Regulatory Programs](http://www.biorxiv.org/content/early/2017/07/04/141689).
+The discovery and analysis of homokaryon specific expression.
 ![The General Overview of Homokaryon Specific Expression](readme/figure0.png)
 
 The tool identifies karyollele pairs between TWO nuclear types (in a dikaryon), and then discovers unique markers that distinguish them from each other, and the rest of the genome.
@@ -60,5 +60,11 @@ You must provide the following information to examine homokaryon specific expres
 Please see the configuration file example.json for an overview of how to configure the pipeline.
 
 
+## Citation
 
+If you use this tool in your work, please cite
+
+[Nucleus Specific Expression In The Multinucleated Mushroom-Forming Fungus Agaricus bisporus Reveals Different Nuclear Regulatory Programs](http://www.biorxiv.org/content/early/2017/07/04/141689)
+Thies Gehrmann, Jordi F. Pelkmans, Robin A. Ohm, Aurin M. Vos, Anton S. M. Sonnenberg, Johan J. P. Baars, Han A. B. Wosten, Marcel J. T. Reinders, Thomas Abeel
+bioRxiv 141689; doi: https://doi.org/10.1101/141689
 
