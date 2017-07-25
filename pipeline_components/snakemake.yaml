@@ -3,5 +3,8 @@ channels:
 dependencies:
  - git
  - ant
+ - scala
  - gffread
  - blast
+ - bioconductor-deseq
+ - openjdk

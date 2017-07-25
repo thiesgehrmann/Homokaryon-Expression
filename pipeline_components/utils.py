@@ -289,4 +289,14 @@ def readGFF3File(filename):
 ###############################################################################
 
 
-
+def readMapping(mapping):
+  import csv
+  M = []
+  with open(mapping, "r") as ifd:
+    reader = csv.reader(ifd, delimiter="\t")
+    for (g1, g2) in reader:
+      M.append((g1,g2))
+    #efor
+  #ewith
+  return M
+#edef

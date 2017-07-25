@@ -40,7 +40,6 @@ rownames(countsTable) <- genegroups
 cond_names <- unique(sapply(conds, function(y){ strsplit(y, "|", fixed=TRUE)[[1]][[2]] }))
 org_names  <- unique(sapply(conds, function(y){ strsplit(y, "|", fixed=TRUE)[[1]][[1]] }))
 
-# I may need to estimate my own size factors for these myself
 # https://stat.ethz.ch/pipermail/bioconductor/2010-October/035933.html
   # Remove NAs from the table
 countsTable <- na.omit(countsTable)
@@ -51,27 +50,38 @@ cds <- newCountDataSet( countsTable, conds )
 # We sum the total read counts for each homokaryon in each sample, and then we compare the two within each sample.
 # We look at the distribution of these values for the two replicates.
 # This is put in condLibRatios
-libSizes <- colSums(countsTable)
-sampleLibRatios <- libSizes[c(TRUE, FALSE)] / libSizes[c(FALSE, TRUE)]
-condLibRatios <- data.frame(r1=sampleLibRatios[c(rep(F, length(conds)/4), rep(T, length(conds)/4))], r2=sampleLibRatios[rev(c(rep(F, length(conds)/4), rep(T, length(conds)/4)))])
-condLibRatios <- transform(condLibRatios, AVG=apply(condLibRatios,1, mean, na.rm = TRUE), SD=apply(condLibRatios,1, sd, na.rm = TRUE), VAR=apply(condLibRatios,1, var, na.rm = TRUE))
-rownames(condLibRatios) <- cond_names
-
-write.table(condLibRatios, file=sprintf("%s.condlibratios.tsv", output_prefix), sep='\t', row.names=TRUE, col.names=FALSE, quote=FALSE)
+#libSizes <- colSums(countsTable)
+#sampleLibRatios <- libSizes[c(TRUE, FALSE)] / libSizes[c(FALSE, TRUE)]
+#condLibRatios <- data.frame(r1=sampleLibRatios[c(rep(F, length(conds)/4), rep(T, length(conds)/4))], r2=sampleLibRatios[rev(c(rep(F, length(conds)/4), rep(T, length(conds)/4)))])
+#condLibRatios <- transform(condLibRatios, AVG=apply(condLibRatios,1, mean, na.rm = TRUE), SD=apply(condLibRatios,1, sd, na.rm = TRUE), VAR=apply(condLibRatios,1, var, na.rm = TRUE))
+#rownames(condLibRatios) <- cond_names
+#write.table(condLibRatios, file=sprintf("%s.condlibratios2.tsv", output_prefix), sep='\t', row.names=TRUE, col.names=FALSE, quote=FALSE)
 
 # Determine my own scaling factors:
 # Library sizes are based on the two columns from the same sample
 # And then estimate the dispersions
+libSizes <- colSums(countsTable)
 sampleSizes <- (libSizes[c(T,F)] + libSizes[c(F,T)])
 sf <- sampleSizes / max(sampleSizes)
 sizeFactors(cds) <- rep(sf, each=2)
-cds <- tryCatch({estimateDispersions( cds )}, error = function(e){estimateDispersions( cds ,fitType="local")})
+cds <- tryCatch({
+  print("Estimating dispersions...")
+  return(estimateDispersions( cds ))
+}, error = function(e){
+  tryCatch( {
+     print("... Failed, trying with local fit...")
+     return(estimateDispersions( cds ,fitType="local", locfit_extra_args=list(maxk=200)))
+  }, error = function(e) {
+     print("... Failed, trying with local blind fit")
+     return(estimateDispersions(cds, fitType="local", method="blind"))
+  })
+})
 
   # Doesn't work for the fake example, so I've commented it out. It works for real data though! Promise!
-#plotDispEsts(cds)
-#pdf(sprintf("%s.DispEsts.pdf", output_prefix))
-#plotDispEsts(cds)
-#dev.off()
+plotDispEsts(cds)
+pdf(sprintf("%s.DispEsts.pdf", output_prefix))
+plotDispEsts(cds)
+dev.off()
 
 Lcounts <- list()
 Lres <- list()

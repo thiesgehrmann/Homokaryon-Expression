@@ -1,0 +1,10 @@
+channels:
+ - bioconda
+ - r
+ - thiesgehrmann
+dependencies:
+ - gffread
+ - picard
+ - bioconductor-polyester
+ - r 
+ - samtools

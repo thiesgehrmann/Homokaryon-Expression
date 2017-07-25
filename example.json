@@ -1,0 +1,26 @@
+{
+
+  "outdir" : "example_output",
+
+  "genomes" : {
+    "genome_1" : {
+       "name"   : "genome_1",
+       "genome" : "example_data/genome1_13.fasta",
+       "gff"    : "example_data/genome1_13.gff3"
+    },
+
+    "genome_2" : {
+       "name"   : "genome_2",
+       "genome" : "example_data/genome2_13.fasta",
+       "gff"    : "example_data/genome2_13.gff3"
+    }
+  },
+
+  "data" : {
+    "sample1_1" : { "condition_label": "condition1", "bam": "example_data/bam/sample_01.bam", "paired" : true },
+    "sample1_2" : { "condition_label": "condition1", "bam": "example_data/bam/sample_02.bam", "paired" : true },
+    "sample2_1" : { "condition_label": "condition2", "bam": "example_data/bam/sample_03.bam", "paired" : true },
+    "sample2_2" : { "condition_label": "condition2", "bam": "example_data/bam/sample_04.bam", "paired" : true }
+  }
+
+}
