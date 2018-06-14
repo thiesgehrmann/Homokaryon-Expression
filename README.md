@@ -37,11 +37,23 @@ snakemake --use-conda --configfile example.json --cores 4 geneRatios
 ### Output
 This produces the output files
 
- * **example_output/kse/grr.tsv**: Gene Read Ratios
- * **example_output/kse/crr.tsv**: Chromosome Read Ratios
- * **example_output/kse/nrr.tsv**: Nuclear Read Ratios
- * **example_output/kse/cgr.tsv**: Chromosome Gene Ratios
- * **example_output/kse/ngr.tsv**: Nuclear Gene Ratios
+ * **example_output/kse/grr.tsv**: Gene Read Ratios per condition
+ * **example_output/kse/crr.tsv**: Chromosome Read Ratios per condition
+ * **example_output/kse/nrr.tsv**: Nuclear Read Ratios per condition
+ * **example_output/kse/cgr.tsv**: Chromosome Gene Ratios per condition
+ * **example_output/kse/ngr.tsv**: Nuclear Gene Ratios per condition
+ * **example_output/deseq/output.tests./tsv**: Differential expression of genes per condition. The columns are 
+   1. condition: condition of the test
+   2. condG1: condition in genome 1
+   3. condG2: condition in genome 2
+   4. karyollele: identified of karyollele pair
+   5. basemean: average across both conditions
+   6. basemeanG1: average for condition in genome 1
+   7. basemeanG2: average for condition in genome 2
+   8. foldchange: fold change between two genomes
+   9. log2foldchange: log fold change
+   10. pval: pvalue
+   11. padj: fdr corrected pvalue
 
 ## Your own data
 
