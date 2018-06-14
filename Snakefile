@@ -467,7 +467,7 @@ rule chromosomeGeneRatios:
         chrCGR = []
         for c in C:
           summed = sum([math.log(q[c]) for q in chrGRR])
-          chrCGR.append(math.exp( (1/float(ngenes)) * summed))
+          chrCGR.append(math.exp( (1/max(1, float(ngenes))) * summed))
         #efor
         ofd.write("%s\t%s\n" % (chromosome, '\t'.join([ str(x) for x in chrCGR])))
      #ewith
