@@ -39,7 +39,7 @@ rule genFastq:
     dir    = __INSTALL_DIR__,
     outdir = __OUTDIR__
   shell: """
-    {params.dir}/generate_fastq.sh "{input.fa}" {params.outdir}/fastq false 0.05
+    {params.dir}/fasta2fastq.sh "{input.fa}" {params.outdir}/fastq false 0.05
   """
 
   # Generate unaligned BAM files from the fastq files using picard and samtools
