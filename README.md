@@ -30,7 +30,7 @@ git clone https://github.com/thiesgehrmann/Homokaryon-Expression.git
 ```bash
 git clone https://github.com/thiesgehrmann/Homokaryon-Expression.git
 cd Homokaryon-Expression
-snakemake --use-conda --snakefile example_data/generateExample.Snakefile --configfile --cores 4 example.json genBam # Generate the sequencing data
+snakemake --use-conda --snakefile example_data/generateExample.Snakefile --configfile example.json --cores 4 genBam # Generate the sequencing data
 snakemake --use-conda --configfile example.json --cores 4 geneRatios
 ```
 
